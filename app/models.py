@@ -33,3 +33,4 @@ class Messages(Base):
                            onupdate=func.current_timestamp())
     dir_id = Column(BigInteger, nullable=False)
     filename = Column(String, nullable=False)
+    message = Column(String, nullable=False)

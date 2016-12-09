@@ -25,9 +25,16 @@ def get_monitor_list():
     return active_monitors
 
 
-# def save_monitor_notification(message):
-#     session = Session()
-#     new_message = models.Messages()
+def save_monitor_notification(details, message):
+    session = Session()
+    new_message = models.Messages(date_created=details['timestamp'],
+                                  date_modified=details['timestamp'],
+                                  dir_id=details['dir_id'],
+                                  filename=details['filename'],
+                                  message=message)
+    session.add(new_message)
+    session.commit()
+
 
 def _main():
     i = inotify.adapters.Inotify()
@@ -42,14 +49,15 @@ def _main():
                     print('New Edits File Created! Initiating Workflow!')
                     edits_parser.edits_to_xml(filename.decode('UTF-8'))
                     newfiles = edits_parser.get_new_file_names()
-                    monitor_list = get_monitor_list()
-                    matches = edits_parser.check_if_monitored(newfiles, monitor_list)
+                    monitors = get_monitor_list()
+                    matches = edits_parser.check_if_monitored(newfiles, monitors)
                     for match in matches:
-                        message = "<{}> | {} | {} | {}".format(match['dir_id'],
+                        message = "<{}>|{}|{}|{}".format(match['dir_id'],
                                                              match['filename'],
                                                              match['fullpath'],
                                                              match['timestamp'])
                         print(message)
+                        save_monitor_notification(match, message)
                         socket.send_string(message)
 
     finally:
